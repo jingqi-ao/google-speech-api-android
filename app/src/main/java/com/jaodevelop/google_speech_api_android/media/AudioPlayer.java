@@ -17,14 +17,14 @@ public class AudioPlayer {
 
     private MediaPlayer mMediaPlayer = null;
 
-    // Set OnStoppedListener interface for "onStopped" callback
-    public interface OnStoppedListener {
-        public void onStopped();
+    // Set AudioPlayingListener interface for "onStopped" callback
+    public interface AudioPlayingListener {
+        public void onAudioPlayingStopped();
     }
 
-    private OnStoppedListener mOnStoppedListner = null;
+    private AudioPlayingListener mOnStoppedListner = null;
 
-    public void setOnStoppoedListener(OnStoppedListener eventListner) {
+    public void setOnStoppoedListener(AudioPlayingListener eventListner) {
         mOnStoppedListner = eventListner;
     }
 
@@ -80,7 +80,7 @@ public class AudioPlayer {
         Log.e(TAG, "stopPlaying()");
 
         if(mOnStoppedListner != null) {
-            mOnStoppedListner.onStopped();
+            mOnStoppedListner.onAudioPlayingStopped();
         }
 
     }

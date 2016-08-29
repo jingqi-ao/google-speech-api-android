@@ -1,4 +1,4 @@
-package com.jaodevelop.google_speech_api_android.httpclient;
+package com.jaodevelop.google_speech_api_android.http;
 
 /**
  * Created by jao on 7/6/16.
