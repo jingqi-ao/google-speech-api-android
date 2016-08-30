@@ -45,18 +45,26 @@ public class GoogleAuth {
 
     }
 
+    public String getAccessTokenString() {
+        return mAccessToken.getAccessToken();
+    }
+
     public class AccessToken {
 
-        String accessToken;
+        String mAccessToken;
         String type = "Bearer";
-        long expirationTime;
+        long mExpirationTime;
 
         AccessToken(String accessToken, int ttlInSeconds) {
 
-            this.accessToken = accessToken;
+            this.mAccessToken = accessToken;
 
-            this.expirationTime = System.currentTimeMillis() + (long) ttlInSeconds;
+            this.mExpirationTime = System.currentTimeMillis() + (long) ttlInSeconds;
 
+        }
+
+        public String getAccessToken() {
+            return this.mAccessToken;
         }
 
     }

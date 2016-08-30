@@ -8,13 +8,15 @@ import android.view.View;
 import android.widget.Button;
 
 import com.jaodevelop.google_speech_api_android.google.GoogleAuth;
+import com.jaodevelop.google_speech_api_android.google.GoogleSpeech;
 import com.jaodevelop.google_speech_api_android.media.AudioPlayer;
 import com.jaodevelop.google_speech_api_android.media.AudioRecorder;
 import com.jaodevelop.google_speech_api_android.media.Transcoder;
 
 public class MainActivity extends AppCompatActivity implements AudioPlayer.AudioPlayingListener,
         Transcoder.TranscodingListener,
-        GoogleAuth.GoogleAuthListener {
+        GoogleAuth.GoogleAuthListener,
+        GoogleSpeech.GoogleSpeechListener {
 
     private final String TAG = "MainActivity";
 
@@ -34,14 +36,17 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
     private String mTranscodingServerURL = "https://192.168.0.24:9443/api/v1/transcode";
     private String mGoogleTokenURL = "https://192.168.0.24:8443/api/v1/accesstoken";
 
+    private String mGoogleSpeechRootURL = "https://speech.googleapis.com/v1beta1";
+
     // Media
     AudioRecorder mAudioRecoder;
     AudioPlayer mAudioPlayer;
 
     Transcoder mTranscoder;
 
-    // Google Auth
+    // Google
     GoogleAuth mGoogleAuth;
+    GoogleSpeech mGoogleSpeech;
 
     // UI
     Button mBtnRecord;
@@ -53,8 +58,9 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // GoogleAuth
+        // Google
         mGoogleAuth = new GoogleAuth(mGoogleTokenURL);
+        mGoogleSpeech = new GoogleSpeech(mGoogleSpeechRootURL);
 
         // Media
         mAudioRecoder = new AudioRecorder(mUser3GPFilePath);
@@ -117,6 +123,8 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
                     mStatus = STATUS_RECOGNIZING;
 
                     mTranscoder.transcode(mUser3GPFilePath, mUserWaveFilePath, MainActivity.this);
+
+                    mGoogleSpeech.sendSyncRecognizeRequest(mGoogleAuth.getAccessTokenString(), MainActivity.this);
 
                     updateStatus();
                     return;
@@ -197,5 +205,15 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
     @Override
     public void onGoogleAuthFailure() {
         Log.d(TAG, "onGoogleAuthFailure()");
+    }
+
+    @Override
+    public void onGoogleSpeechSuccess() {
+        Log.d(TAG, "onGoogleSpeechSuccess()");
+    }
+
+    @Override
+    public void onGoogleSpeechFailure() {
+        Log.d(TAG, "onGoogleSpeechFailure()");
     }
 }
