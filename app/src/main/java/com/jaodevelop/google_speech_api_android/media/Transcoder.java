@@ -110,12 +110,6 @@ public class Transcoder {
 
             TranscoderRequest req = reqs[0];
 
-            Headers audioPartHeader = new Headers.Builder()
-                    .add("Content-Disposition", "form-data;name=\"audio\"")
-                    .add("Content-Type", "application/octet-stream")
-                    .build();
-
-
             RequestBody requestBody = new MultipartBody.Builder()
                     .setType(MultipartBody.FORM)
                     .addFormDataPart("audio", "input.3pg",

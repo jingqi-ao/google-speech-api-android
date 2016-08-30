@@ -7,11 +7,14 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
+import com.jaodevelop.google_speech_api_android.google.GoogleAuth;
 import com.jaodevelop.google_speech_api_android.media.AudioPlayer;
 import com.jaodevelop.google_speech_api_android.media.AudioRecorder;
 import com.jaodevelop.google_speech_api_android.media.Transcoder;
 
-public class MainActivity extends AppCompatActivity implements AudioPlayer.AudioPlayingListener, Transcoder.TranscodingListener {
+public class MainActivity extends AppCompatActivity implements AudioPlayer.AudioPlayingListener,
+        Transcoder.TranscodingListener,
+        GoogleAuth.GoogleAuthListener {
 
     private final String TAG = "MainActivity";
 
@@ -29,12 +32,16 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
 
 
     private String mTranscodingServerURL = "https://192.168.0.24:9443/api/v1/transcode";
+    private String mGoogleTokenURL = "https://192.168.0.24:8443/api/v1/accesstoken";
 
     // Media
     AudioRecorder mAudioRecoder;
     AudioPlayer mAudioPlayer;
 
     Transcoder mTranscoder;
+
+    // Google Auth
+    GoogleAuth mGoogleAuth;
 
     // UI
     Button mBtnRecord;
@@ -45,6 +52,9 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // GoogleAuth
+        mGoogleAuth = new GoogleAuth(mGoogleTokenURL);
 
         // Media
         mAudioRecoder = new AudioRecorder(mUser3GPFilePath);
@@ -117,6 +127,18 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
         });
 
 
+
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        Log.d(TAG, "onResume()");
+
+        mGoogleAuth.obtainAccessToken(this);
+
     }
 
     private void updateStatus() {
@@ -165,5 +187,15 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
 
         mStatus = STATUS_READY;
         updateStatus();
+    }
+
+    @Override
+    public void onGoogleAuthSuccess() {
+        Log.d(TAG, "onGoogleAuthSuccess()");
+    }
+
+    @Override
+    public void onGoogleAuthFailure() {
+        Log.d(TAG, "onGoogleAuthFailure()");
     }
 }
