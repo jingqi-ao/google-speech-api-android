@@ -124,7 +124,11 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
 
                     mTranscoder.transcode(mUser3GPFilePath, mUserWaveFilePath, MainActivity.this);
 
-                    mGoogleSpeech.sendSyncRecognizeRequest(mGoogleAuth.getAccessTokenString(), MainActivity.this);
+                    /*
+                    mGoogleSpeech.sendSyncRecognizeRequest(mGoogleAuth.getAccessTokenString(),
+                            Environment.getExternalStorageDirectory().getAbsolutePath() + "/audio.wav",
+                            MainActivity.this);
+                    */
 
                     updateStatus();
                     return;
@@ -182,6 +186,8 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
     public void onTranscodingSuccess() {
 
         Log.d(TAG, "onTranscodingSuccess()");
+
+        mGoogleSpeech.sendSyncRecognizeRequest(mGoogleAuth.getAccessTokenString(), mUserWaveFilePath, MainActivity.this);
 
         mStatus = STATUS_READY;
         updateStatus();

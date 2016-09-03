@@ -1,6 +1,7 @@
 package com.jaodevelop.google_speech_api_android.google;
 
 import android.os.AsyncTask;
+import android.util.Base64;
 import android.util.Log;
 
 import com.jaodevelop.google_speech_api_android.http.SecureOkHttpClient;
@@ -8,7 +9,10 @@ import com.jaodevelop.google_speech_api_android.http.SecureOkHttpClient;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,11 +52,40 @@ public class GoogleSpeech {
 
     }
 
-    public void sendSyncRecognizeRequest(String accessToken, GoogleSpeechListener listener) {
+    public void sendSyncRecognizeRequest(String accessToken, String audioFileName, GoogleSpeechListener listener) {
 
         SyncRecognizeRequest req = null;
+
+        InputStream inputStream = null;//You can get an inputStream using any IO API
         try {
-            req = new SyncRecognizeRequest(new URL(mGoogleSpeechSyncRecognizeURL), accessToken);
+            inputStream = new FileInputStream(audioFileName);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        byte[] audioBytes;
+
+        byte[] buffer = new byte[8192];
+
+        int bytesRead;
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        try {
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                output.write(buffer, 0, bytesRead);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        audioBytes = Base64.encode(output.toByteArray(), Base64.NO_WRAP);
+
+        String audioString = Base64.encodeToString(output.toByteArray(), Base64.NO_WRAP);
+
+        Log.d(TAG, "audioString.length" + audioString.length());
+        Log.d(TAG, "audioString.getBytes().length" + audioString.getBytes().length);
+
+        try {
+            req = new SyncRecognizeRequest(new URL(mGoogleSpeechSyncRecognizeURL), accessToken, audioBytes, audioString);
         } catch (MalformedURLException e) {
             listener.onGoogleSpeechFailure();
             e.printStackTrace();
@@ -71,9 +104,15 @@ public class GoogleSpeech {
         private URL mURL;
         private String mAccessToken;
 
-        SyncRecognizeRequest(URL url, String accessToken) {
+        private byte[] mAudio;
+
+        private String mAudioString;
+
+        SyncRecognizeRequest(URL url, String accessToken, byte[] audio, String audioString) {
             mURL = url;
             mAccessToken = accessToken;
+            mAudio = audio;
+            mAudioString = audioString;
         }
 
         public URL getURL() {
@@ -82,6 +121,14 @@ public class GoogleSpeech {
 
         public String getAccessToken() {
             return mAccessToken;
+        }
+
+        public byte[] getAudioBytes() {
+            return mAudio;
+        }
+
+        public String getAudioString() {
+            return mAudioString;
         }
 
     }
@@ -108,10 +155,12 @@ public class GoogleSpeech {
             SyncRecognizeRequest req = reqs[0];
 
             // Temporarily create JSON here
+            /*
             JSONObject configObj = new JSONObject();
             try {
                 configObj.put("encoding", "FLAC");
-                configObj.put("sample_rate", "16000");
+                //configObj.put("sample_rate", "16000");
+                configObj.put("sampleRate", "16000");
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -119,6 +168,27 @@ public class GoogleSpeech {
             JSONObject audioObj = new JSONObject();
             try {
                 audioObj.put("uri", "gs://cloud-samples-tests/speech/brooklyn.flac");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+
+            */
+
+            JSONObject configObj = new JSONObject();
+            try {
+                configObj.put("encoding", "LINEAR16");
+                configObj.put("sampleRate", "16000");
+                configObj.put("languageCode", "en-US");
+                configObj.put("maxAlternatives", "5");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            JSONObject audioObj = new JSONObject();
+            try {
+                //audioObj.put("content", req.getAudioBytes());
+                audioObj.put("content", req.getAudioString());
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -138,6 +208,7 @@ public class GoogleSpeech {
             Request request = new Request.Builder()
                     .url(req.getURL())
                     .header("Authorization", "Bearer " + req.getAccessToken())
+                    .addHeader("Content-type", "application/json")
                     .post(body)
                     .build();
 
