@@ -5,13 +5,24 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
+import android.widget.Spinner;
 
 import com.jaodevelop.google_speech_api_android.google.GoogleAuth;
 import com.jaodevelop.google_speech_api_android.google.GoogleSpeech;
 import com.jaodevelop.google_speech_api_android.media.AudioPlayer;
 import com.jaodevelop.google_speech_api_android.media.AudioRecorder;
 import com.jaodevelop.google_speech_api_android.media.Transcoder;
+import com.jaodevelop.google_speech_api_android.ui.ResultArrayAdapter;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements AudioPlayer.AudioPlayingListener,
         Transcoder.TranscodingListener,
@@ -47,11 +58,30 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
     // Google
     GoogleAuth mGoogleAuth;
     GoogleSpeech mGoogleSpeech;
+    String[] mLanguages;
+
+    ArrayList<GoogleSpeech.SynRecognizeAlternative> mSyncRecognizeAlternativeArray;
+
+    // Language
+    final String LANGUAGE_MADARIN = "\u666e\u901a\u8bdd\u0020\u004d\u0061\u006e\u0064\u0061\u0072\u0069\u006e";
+    final String LANGUAGE_ENGLISH = "\u0045\u006e\u0067\u006c\u0069\u0073\u0068";
+
+    ArrayList<String> LANGUAGES = new ArrayList<String>();
+
+    //        (LANGUAGE_ENGLISH);
+    //{LANGUAGE_ENGLISH, LANGUAGE_MADARIN};
+
+    String mLanguage = LANGUAGE_ENGLISH; // from LANGUAGE_*
 
     // UI
     Button mBtnRecord;
     Button mBtnReplay;
     Button mBtnRecognize;
+
+    ListView mLVResult;
+    ResultArrayAdapter mResultArrayAdapter;
+
+    Spinner mSpinLanguage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +91,8 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
         // Google
         mGoogleAuth = new GoogleAuth(mGoogleTokenURL);
         mGoogleSpeech = new GoogleSpeech(mGoogleSpeechRootURL);
+
+
 
         // Media
         mAudioRecoder = new AudioRecorder(mUser3GPFilePath);
@@ -131,15 +163,38 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
                     */
 
                     updateStatus();
-                    return;
                 }
-
 
             }
         });
 
 
+        mSyncRecognizeAlternativeArray = new ArrayList<GoogleSpeech.SynRecognizeAlternative>();
+        mResultArrayAdapter = new ResultArrayAdapter(this, mSyncRecognizeAlternativeArray);
+        mLVResult = (ListView) findViewById(R.id.lvResult);
+        mLVResult.setAdapter(mResultArrayAdapter);
 
+        LANGUAGES.add(LANGUAGE_ENGLISH);
+        LANGUAGES.add(LANGUAGE_MADARIN);
+
+        mSpinLanguage = (Spinner) findViewById(R.id.spinLanguage);
+        ArrayAdapter<String> spinLanguageAdapter = new ArrayAdapter<String>(MainActivity.this,
+                android.R.layout.simple_spinner_item, LANGUAGES);
+        spinLanguageAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mSpinLanguage.setAdapter(spinLanguageAdapter);
+        mSpinLanguage.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                Log.d(TAG, "old mLanguage is:" + mLanguage);
+                mLanguage = LANGUAGES.get(i);
+                Log.d(TAG, "new mLanguage is:" + mLanguage);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
 
     }
 
@@ -174,6 +229,21 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
 
     }
 
+    private String getLanguageCode(String language) {
+
+        String languageCode = null;
+
+        switch(language) {
+            case LANGUAGE_MADARIN:
+                languageCode = GoogleSpeech.LANG_CODE_MANDARIN;
+                break;
+            default:
+                languageCode = GoogleSpeech.LANG_CODE_ENGLISH_US;
+        }
+
+        return languageCode;
+    }
+
     @Override
     // Implement AudioPlayer.AudioPlayingListener
     // Handle automatical stop (end of sound file)
@@ -187,7 +257,7 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
 
         Log.d(TAG, "onTranscodingSuccess()");
 
-        mGoogleSpeech.sendSyncRecognizeRequest(mGoogleAuth.getAccessTokenString(), mUserWaveFilePath, MainActivity.this);
+        mGoogleSpeech.sendSyncRecognizeRequest(mGoogleAuth.getAccessTokenString(), mUserWaveFilePath, getLanguageCode(mLanguage), MainActivity.this);
 
         mStatus = STATUS_READY;
         updateStatus();
@@ -214,7 +284,23 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
     }
 
     @Override
-    public void onGoogleSpeechSuccess() {
+    public void onGoogleSpeechSuccess(GoogleSpeech.SyncRecognizeResult data) {
+
+
+        GoogleSpeech.SynRecognizeAlternative[] alternatives = data.getAlternatives();
+
+        int oldLength = mSyncRecognizeAlternativeArray.size();
+        for(int i = 0; i < oldLength; i++) {
+            mSyncRecognizeAlternativeArray.remove(0);
+        }
+
+        int newLength = alternatives.length;
+        for(int i = 0; i < newLength; i++) {
+            mSyncRecognizeAlternativeArray.add(alternatives[i]);
+        }
+
+        mResultArrayAdapter.notifyDataSetChanged();
+
         Log.d(TAG, "onGoogleSpeechSuccess()");
     }
 

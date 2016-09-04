@@ -4,8 +4,10 @@ import android.os.AsyncTask;
 import android.util.Base64;
 import android.util.Log;
 
+import com.jaodevelop.google_speech_api_android.MainActivity;
 import com.jaodevelop.google_speech_api_android.http.SecureOkHttpClient;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -38,9 +40,13 @@ public class GoogleSpeech {
 
     String mGoogleSpeechSyncRecognizeURL;
 
+    // Language
+    public static String LANG_CODE_MANDARIN="cmn-Hans-CN";
+    public static String LANG_CODE_ENGLISH_US="en-US";
+
 
     public interface GoogleSpeechListener {
-        void onGoogleSpeechSuccess();
+        void onGoogleSpeechSuccess(SyncRecognizeResult result);
         void onGoogleSpeechFailure();
     }
 
@@ -52,7 +58,8 @@ public class GoogleSpeech {
 
     }
 
-    public void sendSyncRecognizeRequest(String accessToken, String audioFileName, GoogleSpeechListener listener) {
+    // language = LANG_CODE_*
+    public void sendSyncRecognizeRequest(String accessToken, String audioFileName, String language, GoogleSpeechListener listener) {
 
         SyncRecognizeRequest req = null;
 
@@ -85,7 +92,7 @@ public class GoogleSpeech {
         Log.d(TAG, "audioString.getBytes().length" + audioString.getBytes().length);
 
         try {
-            req = new SyncRecognizeRequest(new URL(mGoogleSpeechSyncRecognizeURL), accessToken, audioBytes, audioString);
+            req = new SyncRecognizeRequest(new URL(mGoogleSpeechSyncRecognizeURL), accessToken, audioString, language);
         } catch (MalformedURLException e) {
             listener.onGoogleSpeechFailure();
             e.printStackTrace();
@@ -99,20 +106,81 @@ public class GoogleSpeech {
 
     }
 
+    static public class SynRecognizeAlternative {
+
+        private String mTranscript;
+        private Float mConfidence;
+
+        SynRecognizeAlternative(String transcript, Float confidence) {
+
+            mTranscript = transcript;
+            mConfidence = confidence;
+
+        }
+
+        public String getTranscript() {
+            return mTranscript;
+        }
+
+        public Float getConfidence() {
+            return mConfidence;
+        }
+
+    } // private class SynRecognizeAlternative
+
+    static public class SyncRecognizeResult {
+
+        SynRecognizeAlternative[] mAlternatives;
+
+
+        SyncRecognizeResult(JSONArray alternatives) {
+
+            mAlternatives = new SynRecognizeAlternative[alternatives.length()];
+
+            for(int i = 0; i < alternatives.length(); i++) {
+
+                try {
+                    JSONObject alt = alternatives.getJSONObject(i);
+
+                    String transcript = alt.optString("transcript", "N/A");
+                    float confidience = (float) alt.optDouble("confidence", 0);
+
+                    mAlternatives[i] = new SynRecognizeAlternative(transcript, confidience);
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+
+            }
+
+
+        } // SyncRecognizeResult(JSONArray alternatives)
+
+        public SynRecognizeAlternative[] getAlternatives() {
+            return mAlternatives;
+        }
+
+
+    }
+
     private class SyncRecognizeRequest {
 
         private URL mURL;
         private String mAccessToken;
 
-        private byte[] mAudio;
+        // private byte[] mAudio;
 
         private String mAudioString;
 
-        SyncRecognizeRequest(URL url, String accessToken, byte[] audio, String audioString) {
+        private String mLanguage;
+
+        SyncRecognizeRequest(URL url, String accessToken, String audioString, String language) {
             mURL = url;
             mAccessToken = accessToken;
-            mAudio = audio;
+            // mAudio = audio;
             mAudioString = audioString;
+            mLanguage = language;
         }
 
         public URL getURL() {
@@ -123,12 +191,16 @@ public class GoogleSpeech {
             return mAccessToken;
         }
 
-        public byte[] getAudioBytes() {
-            return mAudio;
-        }
+        // public byte[] getAudioBytes() {
+        //     return mAudio;
+        // }
 
         public String getAudioString() {
             return mAudioString;
+        }
+
+        public String getLanguage() {
+            return mLanguage;
         }
 
     }
@@ -179,7 +251,11 @@ public class GoogleSpeech {
             try {
                 configObj.put("encoding", "LINEAR16");
                 configObj.put("sampleRate", "16000");
-                configObj.put("languageCode", "en-US");
+                //configObj.put("languageCode", "en-US");
+                // configObj.put("languageCode", "cmn-Hans-CN");
+
+                configObj.put("languageCode", req.getLanguage());
+
                 configObj.put("maxAlternatives", "5");
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -225,6 +301,10 @@ public class GoogleSpeech {
 
                     String jsonString = response.body().string();
 
+                    // byte[] jsonBytes = response.body().bytes();
+
+                    // String jsonString = new String(jsonBytes,"UTF-8");
+
                     publishProgress(STATUS_OK, jsonString);
 
                 } catch (IOException e) {
@@ -247,13 +327,21 @@ public class GoogleSpeech {
                 String jsonString = values[1];
 
                 JSONObject jsonObject = null;
+                SyncRecognizeResult recognizeResult = null;
+
                 try {
 
                     jsonObject = new JSONObject(jsonString);
 
                     Log.d(TAG, "jsonString: " + jsonString);
 
-                    mListener.onGoogleSpeechSuccess();
+                    JSONArray results = jsonObject.getJSONArray("results");
+                    JSONObject result = results.getJSONObject(0);
+                    JSONArray alternatives = result.getJSONArray("alternatives");
+
+                    recognizeResult = new SyncRecognizeResult(alternatives);
+
+                    mListener.onGoogleSpeechSuccess(recognizeResult);
 
                     return;
 

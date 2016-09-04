@@ -9,10 +9,24 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.jaodevelop.google_speech_api_android.MainActivity">
 
+    <!--
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:id="@+id/tv"
         android:text="Hello World!" />
+    -->
+
+    <ListView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/lvResult"
+        android:layout_width="wrap_content"
+        android:layout_height="275dp" />
+
+    <Spinner
+        android:id="@+id/spinLanguage"
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:layout_below="@id/lvResult" />
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
@@ -22,6 +36,7 @@
         android:orientation="horizontal"
         android:layout_alignParentBottom="true"
         android:layout_alignParentStart="true"
+        android:layout_below="@id/spinLanguage"
         android:gravity="center_vertical|center_horizontal" >
 
         <Button
