@@ -153,6 +153,7 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
                 if(mStatus == STATUS_READY) {
 
                     mStatus = STATUS_RECOGNIZING;
+                    updateStatus();
 
                     mTranscoder.transcode(mUser3GPFilePath, mUserWaveFilePath, MainActivity.this);
 
@@ -162,7 +163,7 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
                             MainActivity.this);
                     */
 
-                    updateStatus();
+
                 }
 
             }
@@ -212,8 +213,9 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
 
         switch(mStatus) {
             case STATUS_READY:
-                mBtnRecord.setText("Ready");
+                mBtnRecord.setText("Record");
                 mBtnReplay.setText("Replay");
+                mBtnRecognize.setText("Recognize");
                 break;
             case STATUS_RECORDING:
                 mBtnRecord.setText("Recording...");
@@ -222,7 +224,7 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
                 mBtnReplay.setText("Replaying...");
                 break;
             case STATUS_RECOGNIZING:
-                mBtnReplay.setText("Recognizing...");
+                mBtnRecognize.setText("Recognizing...");
                 break;
             default:
         }
@@ -259,8 +261,8 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
 
         mGoogleSpeech.sendSyncRecognizeRequest(mGoogleAuth.getAccessTokenString(), mUserWaveFilePath, getLanguageCode(mLanguage), MainActivity.this);
 
-        mStatus = STATUS_READY;
-        updateStatus();
+        // mStatus = STATUS_READY;
+        // updateStatus();
     }
 
     @Override
@@ -302,6 +304,10 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
         mResultArrayAdapter.notifyDataSetChanged();
 
         Log.d(TAG, "onGoogleSpeechSuccess()");
+
+        mStatus = STATUS_READY;
+        updateStatus();
+
     }
 
     @Override

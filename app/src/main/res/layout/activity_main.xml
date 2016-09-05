@@ -22,11 +22,18 @@
         android:layout_width="wrap_content"
         android:layout_height="275dp" />
 
+    <TextView
+        android:id="@+id/tvInputLanguage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/lvResult"
+        android:text="Input Language" />
+
     <Spinner
         android:id="@+id/spinLanguage"
         android:layout_width="wrap_content"
         android:layout_height="50dp"
-        android:layout_below="@id/lvResult" />
+        android:layout_below="@id/tvInputLanguage" />
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
