@@ -114,7 +114,7 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
             @Override
             public void onClick(View view) {
 
-                if(mStatus == STATUS_READY) {
+                if(mStatus == STATUS_READY || mStatus == STATUS_SUCCESS_RECOGNIZE) {
                     mStatus = STATUS_RECORDING;
                     mAudioRecoder.startRecord();
                     updateStatus();
