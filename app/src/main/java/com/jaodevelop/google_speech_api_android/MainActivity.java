@@ -1,5 +1,6 @@
 package com.jaodevelop.google_speech_api_android;
 
+import android.graphics.Color;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -10,6 +11,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import com.jaodevelop.google_speech_api_android.google.GoogleAuth;
 import com.jaodevelop.google_speech_api_android.google.GoogleSpeech;
@@ -35,6 +37,9 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
     private final String STATUS_RECORDING = "Recording";
     private final String STATUS_REPLAYING = "Replaying";
     private final String STATUS_RECOGNIZING = "Recognizing";
+
+    private final String STATUS_SUCCESS_RECOGNIZE = "Speech recognition succeeded";
+    private final String STATUS_ERROR_FAIL_TO_GET_GOOGLE_ACCESS_TOKEN = "Fail to get Google access token";
 
     private String mStatus = STATUS_READY;
 
@@ -83,6 +88,8 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
 
     Spinner mSpinLanguage;
 
+    TextView mTVStatus;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -115,15 +122,25 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
                 }
 
                 if(mStatus == STATUS_RECORDING) {
-                    mStatus = STATUS_READY;
+
+                    //mStatus = STATUS_READY;
                     mAudioRecoder.stopRecord();
+
+                    // Recognize flow:
+                    // Speak -> Stop -> Transcode -> Google Speech Sync Recog -> Result (success or failure)
+
+                    mStatus = STATUS_RECOGNIZING;
                     updateStatus();
+
+                    mTranscoder.transcode(mUser3GPFilePath, mUserWaveFilePath, MainActivity.this);
+
                     return;
                 }
 
             }
         });
 
+        /*
         mBtnReplay = (Button) findViewById(R.id.btnReplay);
         mBtnReplay.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -157,17 +174,14 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
 
                     mTranscoder.transcode(mUser3GPFilePath, mUserWaveFilePath, MainActivity.this);
 
-                    /*
-                    mGoogleSpeech.sendSyncRecognizeRequest(mGoogleAuth.getAccessTokenString(),
-                            Environment.getExternalStorageDirectory().getAbsolutePath() + "/audio.wav",
-                            MainActivity.this);
-                    */
+
 
 
                 }
 
             }
         });
+                */
 
 
         mSyncRecognizeAlternativeArray = new ArrayList<GoogleSpeech.SynRecognizeAlternative>();
@@ -197,6 +211,8 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
             }
         });
 
+        mTVStatus = (TextView) findViewById(R.id.tvStatus);
+
     }
 
     @Override
@@ -213,18 +229,34 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
 
         switch(mStatus) {
             case STATUS_READY:
-                mBtnRecord.setText("Record");
-                mBtnReplay.setText("Replay");
-                mBtnRecognize.setText("Recognize");
+                mBtnRecord.setText("Speak");
+                //mBtnReplay.setText("Replay");
+                //mBtnRecognize.setText("Recognize");
+                mTVStatus.setText(STATUS_READY);
+                mTVStatus.setTextColor(Color.argb(255, 0, 0, 0));
                 break;
             case STATUS_RECORDING:
-                mBtnRecord.setText("Recording...");
+                mBtnRecord.setText("Stop");
+                mTVStatus.setText(STATUS_RECORDING);
+                mTVStatus.setTextColor(Color.argb(255, 0, 0, 102));
                 break;
             case STATUS_REPLAYING:
                 mBtnReplay.setText("Replaying...");
                 break;
             case STATUS_RECOGNIZING:
-                mBtnRecognize.setText("Recognizing...");
+                // mBtnRecognize.setText("Recognizing...");
+                mBtnRecord.setText("Speak");
+                mTVStatus.setText(STATUS_RECOGNIZING);
+                mTVStatus.setTextColor(Color.argb(255, 0, 0, 102));
+                break;
+            case STATUS_ERROR_FAIL_TO_GET_GOOGLE_ACCESS_TOKEN:
+                mTVStatus.setText(STATUS_ERROR_FAIL_TO_GET_GOOGLE_ACCESS_TOKEN);
+                mTVStatus.setTextColor(Color.argb(255, 255, 0, 0));
+                break;
+            case STATUS_SUCCESS_RECOGNIZE:
+                mBtnRecord.setText("Speak");
+                mTVStatus.setText(STATUS_SUCCESS_RECOGNIZE);
+                mTVStatus.setTextColor(Color.argb(255, 0, 255, 0));
                 break;
             default:
         }
@@ -278,11 +310,15 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
     @Override
     public void onGoogleAuthSuccess() {
         Log.d(TAG, "onGoogleAuthSuccess()");
+        mStatus = STATUS_READY;
+        updateStatus();
     }
 
     @Override
     public void onGoogleAuthFailure() {
         Log.d(TAG, "onGoogleAuthFailure()");
+        mStatus = STATUS_ERROR_FAIL_TO_GET_GOOGLE_ACCESS_TOKEN;
+        updateStatus();
     }
 
     @Override
@@ -305,7 +341,7 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
 
         Log.d(TAG, "onGoogleSpeechSuccess()");
 
-        mStatus = STATUS_READY;
+        mStatus = STATUS_SUCCESS_RECOGNIZE;
         updateStatus();
 
     }

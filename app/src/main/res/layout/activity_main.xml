@@ -35,23 +35,26 @@
         android:layout_height="50dp"
         android:layout_below="@id/tvInputLanguage" />
 
+
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/llButtons"
         android:layout_width="match_parent"
         android:layout_height="40dp"
         android:paddingLeft="16dp"
         android:paddingRight="16dp"
         android:orientation="horizontal"
-        android:layout_alignParentBottom="true"
         android:layout_alignParentStart="true"
         android:layout_below="@id/spinLanguage"
         android:gravity="center_vertical|center_horizontal" >
 
+
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Record"
+            android:text="Speak"
             android:id="@+id/btnRecord"
             android:layout_alignParentBottom="true" />
+
 
         <Button
             android:layout_width="wrap_content"
@@ -68,5 +71,12 @@
             android:layout_alignParentBottom="true" />
 
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/llButtons"
+        android:text="Ready" />
 
 </RelativeLayout>
