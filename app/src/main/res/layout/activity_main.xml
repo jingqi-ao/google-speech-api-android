@@ -35,6 +35,18 @@
         android:layout_height="50dp"
         android:layout_below="@id/tvInputLanguage" />
 
+    <TextView
+        android:id="@+id/tvTranslateTargetLanguage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/spinLanguage"
+        android:text="Translate to" />
+
+    <Spinner
+        android:id="@+id/spinTranslateTargetLanguage"
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:layout_below="@id/tvTranslateTargetLanguage" />
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/llButtons"
@@ -44,7 +56,7 @@
         android:paddingRight="16dp"
         android:orientation="horizontal"
         android:layout_alignParentStart="true"
-        android:layout_below="@id/spinLanguage"
+        android:layout_below="@id/spinTranslateTargetLanguage"
         android:gravity="center_vertical|center_horizontal" >
 
 

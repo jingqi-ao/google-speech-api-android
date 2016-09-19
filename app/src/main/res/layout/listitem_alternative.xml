@@ -9,10 +9,18 @@
         android:id="@+id/li_alternative_tv_transcript"
         android:text="Transcript" />
 
+    <!--
     <TextView
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:id="@+id/li_alternative_tv_confidence"
         android:text="Confidence" />
+        -->
+
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/li_alternative_tv_translate"
+        android:text="N/A" />
 
 </LinearLayout>
