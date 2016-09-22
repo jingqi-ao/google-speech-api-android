@@ -450,6 +450,17 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
 
         Log.d(TAG, "translate()");
 
+        if(mTranslateTargetLanguage.equals(LANGUAGE_NULL)) {
+            // Remove all translated string
+            for(int i = 0; i < mResultList.size(); i++) {
+                mResultList.get(i).setTranslateString("");
+            }
+
+            mResultArrayAdapter.notifyDataSetChanged();
+
+            return;
+        }
+
         String[] strings = new String[mResultList.size()];
 
         for(int i = 0; i < strings.length; i++) {
