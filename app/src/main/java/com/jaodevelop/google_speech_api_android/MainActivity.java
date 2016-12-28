@@ -52,13 +52,13 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
             "/google-sppech-api-android-user-sound.wav";
 
 
-    private String mTranscodingServerURL = "https://192.168.0.24:9443/api/v1/transcode";
-    private String mGoogleTokenURL = "https://192.168.0.24:8443/api/v1/accesstoken";
+    private String mTranscodingServerURL = "https://192.168.2.14:9443/api/v1/transcode";
+    private String mGoogleTokenURL = "https://192.168.2.14:8443/api/v1/accesstoken";
 
     private String mGoogleSpeechRootURL = "https://speech.googleapis.com/v1beta1";
 
     // private String mGoogleTranslateRootURL = "https://www.googleapis.com/language/translate/v2";
-    private String mGoogleTranslateRootURL = "https://192.168.0.24:8443/api/v1/translate";
+    private String mGoogleTranslateRootURL = "https://192.168.2.14:10443/api/v1/translate";
 
     // Media
     AudioRecorder mAudioRecoder;
@@ -78,8 +78,9 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
     ArrayList<ResultListItem> mResultList;
 
     // Language
-    final String LANGUAGE_MADARIN = "\u666e\u901a\u8bdd\u0020\u004d\u0061\u006e\u0064\u0061\u0072\u0069\u006e";
+    final String LANGUAGE_MADARIN = "\u004d\u0061\u006e\u0064\u0061\u0072\u0069\u006e\u0020\u666e\u901a\u8bdd";
     final String LANGUAGE_ENGLISH = "\u0045\u006e\u0067\u006c\u0069\u0073\u0068";
+    final String LANGUAGE_JAPANESE = "\u004a\u0061\u0070\u0061\u006e\u0065\u0073\u0065\u0020\u65e5\u672c\u8a9e";
 
 
 
@@ -217,6 +218,7 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
         // Speech recognize spinner
         LANGUAGES.add(LANGUAGE_ENGLISH);
         LANGUAGES.add(LANGUAGE_MADARIN);
+        LANGUAGES.add(LANGUAGE_JAPANESE);
 
         mSpinLanguage = (Spinner) findViewById(R.id.spinLanguage);
         ArrayAdapter<String> spinLanguageAdapter = new ArrayAdapter<String>(MainActivity.this,
@@ -247,6 +249,7 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
         TRANSLATE_TARGET_LANGUAGES.add(LANGUAGE_NULL);
         TRANSLATE_TARGET_LANGUAGES.add(LANGUAGE_ENGLISH);
         TRANSLATE_TARGET_LANGUAGES.add(LANGUAGE_MADARIN);
+        TRANSLATE_TARGET_LANGUAGES.add(LANGUAGE_JAPANESE);
 
         mSpinTranslateTargetLanguage = (Spinner) findViewById(R.id.spinTranslateTargetLanguage);
         ArrayAdapter<String> spinTranslateTargetLanguageAdapter = new ArrayAdapter<String>(MainActivity.this,
@@ -337,6 +340,9 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
             case LANGUAGE_MADARIN:
                 languageCode = GoogleSpeech.LANG_CODE_MANDARIN;
                 break;
+            case LANGUAGE_JAPANESE:
+                languageCode = GoogleSpeech.LANG_CODE_JAPANESE;
+                break;
             default:
                 languageCode = GoogleSpeech.LANG_CODE_ENGLISH_US;
         }
@@ -351,6 +357,9 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
         switch(language) {
             case LANGUAGE_MADARIN:
                 languageCode = GoogleTranslate.TRANSLATE_LANGUAGE_CODE_CHINESE_SIMPLIFIED;
+                break;
+            case LANGUAGE_JAPANESE:
+                languageCode = GoogleTranslate.TRANSLATE_LANTUAGE_CODE_JAPANESE;
                 break;
             default:
                 languageCode = GoogleTranslate.TRANSLATE_LANGUAGE_CODE_ENGLISH;
@@ -439,6 +448,8 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
     @Override
     public void onGoogleSpeechFailure() {
         Log.d(TAG, "onGoogleSpeechFailure()");
+        mStatus = STATUS_READY;
+        updateStatus();
     }
 
     // Update translate

@@ -44,6 +44,7 @@ public class GoogleTranslate {
 
     public static String TRANSLATE_LANGUAGE_CODE_ENGLISH = "en";
     public static String TRANSLATE_LANGUAGE_CODE_CHINESE_SIMPLIFIED = "zh-CN";
+    public static String TRANSLATE_LANTUAGE_CODE_JAPANESE = "ja";
 
     public interface GoogleTranslateListener {
 

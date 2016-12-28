@@ -43,6 +43,7 @@ public class GoogleSpeech {
     // Language
     public static String LANG_CODE_MANDARIN="cmn-Hans-CN";
     public static String LANG_CODE_ENGLISH_US="en-US";
+    public static String LANG_CODE_JAPANESE="ja-JP";
 
 
     public interface GoogleSpeechListener {
