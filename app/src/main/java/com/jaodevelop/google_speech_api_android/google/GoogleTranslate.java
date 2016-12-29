@@ -5,6 +5,7 @@ package com.jaodevelop.google_speech_api_android.google;
  */
 
 import android.os.AsyncTask;
+import android.text.Html;
 import android.util.Base64;
 import android.util.Log;
 
@@ -96,6 +97,12 @@ public class GoogleTranslate {
                     JSONObject alt = results.getJSONObject(i);
 
                     String translatedText = alt.optString("translatedText", "N/A");
+
+                    // translatedText from Google Translate is HTML encoded, e.g. {"translatedText":"what&#39;s the weather in San Francisco"}
+                    // And Html.fromHtml(String) is deprecated in API level 24 (Android 7.0)
+                    translatedText = Html.fromHtml(translatedText).toString();
+
+                    Log.d(TAG, "translatedText: " + translatedText);
 
                     mResults[i] = translatedText;
 
