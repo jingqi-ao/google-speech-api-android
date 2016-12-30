@@ -13,6 +13,7 @@ import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.jaodevelop.google_speech_api_android.google.AWSPolly;
 import com.jaodevelop.google_speech_api_android.google.GoogleAuth;
 import com.jaodevelop.google_speech_api_android.google.GoogleSpeech;
 import com.jaodevelop.google_speech_api_android.google.GoogleTranslate;
@@ -32,7 +33,8 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
         Transcoder.TranscodingListener,
         GoogleAuth.GoogleAuthListener,
         GoogleSpeech.GoogleSpeechListener,
-        GoogleTranslate.GoogleTranslateListener {
+        GoogleTranslate.GoogleTranslateListener,
+        AWSPolly.AWSPollyListener {
 
     private final String TAG = "MainActivity";
 
@@ -51,7 +53,10 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
     private final String mUserWaveFilePath = Environment.getExternalStorageDirectory().getAbsolutePath() +
             "/google-sppech-api-android-user-sound.wav";
 
+    private final String mAWSPollyFilePath = Environment.getExternalStorageDirectory().getAbsolutePath() +
+            "/aws-polly-sound.mp3";
 
+    
     private String mTranscodingServerURL = "https://192.168.2.14:9443/api/v1/transcode";
     private String mGoogleTokenURL = "https://192.168.2.14:8443/api/v1/accesstoken";
 
@@ -59,6 +64,8 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
 
     // private String mGoogleTranslateRootURL = "https://www.googleapis.com/language/translate/v2";
     private String mGoogleTranslateRootURL = "https://192.168.2.14:10443/api/v1/translate";
+
+    private String mAWSPollyRootURL = "https://192.168.2.14:20443/api/v1/polly";
 
     // Media
     AudioRecorder mAudioRecoder;
@@ -70,6 +77,9 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
     GoogleAuth mGoogleAuth;
     GoogleSpeech mGoogleSpeech;
     GoogleTranslate mGoogleTranslate;
+
+    // AWS
+    AWSPolly mAWSPolly;
 
     String[] mLanguages;
 
@@ -122,10 +132,15 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
         mGoogleSpeech = new GoogleSpeech(mGoogleSpeechRootURL);
         mGoogleTranslate = new GoogleTranslate(mGoogleTranslateRootURL);
 
+        // AWS
+        mAWSPolly = new AWSPolly(mAWSPollyRootURL);
 
         // Media
         mAudioRecoder = new AudioRecorder(mUser3GPFilePath);
-        mAudioPlayer = new AudioPlayer(mUser3GPFilePath);
+
+        //mAudioPlayer = new AudioPlayer(mUser3GPFilePath);
+        //mAudioPlayer.setOnStoppoedListener(this);
+        mAudioPlayer = new AudioPlayer(mAWSPollyFilePath);
         mAudioPlayer.setOnStoppoedListener(this);
 
         mTranscoder = new Transcoder(mTranscodingServerURL);
@@ -215,6 +230,23 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
         mLVResult = (ListView) findViewById(R.id.lvResult);
         mLVResult.setAdapter(mResultArrayAdapter);
 
+        mLVResult.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position,
+                                    long id) {
+                ResultListItem entry= (ResultListItem) parent.getAdapter().getItem(position);
+
+                if(entry.getIsAWSPollySupported()) {
+                    mAWSPolly.sendSynthesizeRequest(entry.getTranslateString(),
+                            getAWSPollyLanguage(mTranslateTargetLanguage),
+                            mAWSPollyFilePath,
+                            MainActivity.this);
+                }
+
+
+            }
+        });
+
         // Speech recognize spinner
         LANGUAGES.add(LANGUAGE_ENGLISH);
         LANGUAGES.add(LANGUAGE_MADARIN);
@@ -261,13 +293,16 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
 
-                // Update Google recognition recognition language
+                // Update Google speech recognition language
                 Log.d(TAG, "old mTranslateTargetLanguage is:" + mTranslateTargetLanguage);
-                mTranslateTargetLanguage = TRANSLATE_TARGET_LANGUAGES.get(i);
-                Log.d(TAG, "new mTranslateTargetLanguage is:" + mTranslateTargetLanguage);
+
+                //mTranslateTargetLanguage = TRANSLATE_TARGET_LANGUAGES.get(i);
+
 
                 // Update Google translate source language
                 mTranslateTargetLanguage = TRANSLATE_TARGET_LANGUAGES.get(i);
+
+                Log.d(TAG, "new mTranslateTargetLanguage is:" + mTranslateTargetLanguage);
 
                 translate();
 
@@ -366,6 +401,24 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
         }
 
         return languageCode;
+
+    }
+
+    private String getAWSPollyLanguage(String language) {
+        String lang = null;
+
+        switch(language) {
+            case LANGUAGE_ENGLISH:
+                lang = AWSPolly.AWS_POLLY_LANGUAGE_ENGLISH_US;
+                break;
+            case LANGUAGE_JAPANESE:
+                lang = AWSPolly.AWS_POLLY_LANGUAGE_JAPANESE;
+                break;
+            default:
+                lang = null;
+        }
+
+        return lang;
 
     }
 
@@ -493,6 +546,24 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
             item.setTranslateString(results[i]);
         }
 
+        // Handdling AWS Polly support
+        if(getAWSPollyLanguage(mTranslateTargetLanguage) != null) {
+            // If the translate target language is supported by AWS Polly
+
+            for(int i = 0; i < results.length; i++) {
+                ResultListItem item = mResultList.get(i);
+                item.setIsAWSPollySupported(true);
+            }
+
+        } else {
+
+            for(int i = 0; i < results.length; i++) {
+                ResultListItem item = mResultList.get(i);
+                item.setIsAWSPollySupported(false);
+            }
+
+        }
+
         mResultArrayAdapter.notifyDataSetChanged();
 
     }
@@ -502,4 +573,14 @@ public class MainActivity extends AppCompatActivity implements AudioPlayer.Audio
     }
 
 
+    @Override
+    public void onAWSPollySuccess(AWSPolly.AWSPollyResult result) {
+        Log.d(TAG, "onAWSPollySuccess()");
+        mAudioPlayer.startPlaying();
+    }
+
+    @Override
+    public void onAWSPollyFailure() {
+        Log.d(TAG, "onAWSPollyFailure()");
+    }
 }

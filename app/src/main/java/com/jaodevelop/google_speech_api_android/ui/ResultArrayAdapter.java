@@ -86,6 +86,14 @@ public class ResultArrayAdapter extends ArrayAdapter<ResultListItem> {
 
         //tvConfidence.setText(mValues.get(position).getConfidence().toString());
 
+        // AWS Polly support
+        ImageView ivSound = (ImageView) rowView.findViewById(R.id.li_alternative_iv_sound);
+        if(mValues.get(position).getIsAWSPollySupported()) {
+            ivSound.setVisibility(View.VISIBLE);
+        } else {
+            ivSound.setVisibility(View.INVISIBLE);
+        }
+
         return rowView;
     }
 

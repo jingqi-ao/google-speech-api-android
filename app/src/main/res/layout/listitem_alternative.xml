@@ -1,26 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
+    android:orientation="horizontal" android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <TextView
-        android:layout_width="fill_parent"
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="275dp"
         android:layout_height="wrap_content"
-        android:id="@+id/li_alternative_tv_transcript"
-        android:text="Transcript" />
+        android:orientation="vertical">
 
-    <!--
-    <TextView
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/li_alternative_tv_confidence"
-        android:text="Confidence" />
-        -->
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/li_alternative_tv_transcript"
+            android:text="Transcript" />
 
-    <TextView
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/li_alternative_tv_translate"
-        android:text="N/A" />
+        <!--
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/li_alternative_tv_confidence"
+            android:text="Confidence" />
+            -->
+
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/li_alternative_tv_translate"
+            android:text="N/A" />
+
+    </LinearLayout>
+
+
+    <ImageView
+        android:id="@+id/li_alternative_iv_sound"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:layout_marginLeft="25dp"
+        android:gravity="center_vertical"
+        android:src="@drawable/sound_stop"/>
 
 </LinearLayout>
